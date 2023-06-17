@@ -18,31 +18,60 @@ Transform :: enum {
 	FlipV,
 	FlipV_Rotate90,
 }
-all_transforms: [5]Transform = {.None, .Rotate90, .FlipH, .FlipV, .FlipV_Rotate90}
+T_COUNT :: 5
+all_transforms: [T_COUNT]Transform = {.None, .Rotate90, .FlipH, .FlipV, .FlipV_Rotate90}
+Side :: enum {
+	OPEN,
+	PIPE,
+}
+X_xforms : [1]Transform = {.None}
+T_xforms : [4]Transform = {.None, .Rotate90, .FlipV, .FlipV_Rotate90}
+I_xforms : [2]Transform = {.None, .Rotate90}
+L_xforms : [4]Transform = {.None, .FlipH, .FlipV, .FlipV_Rotate90}
 
 TileSource :: struct {
 	tex: Texture2D,
 	sym: Sym,
+	sides: [4]Side,
+	xforms: []Transform,
 }
-tile_src_contains_transform :: proc(ts: TileSource, xform: Transform) -> bool {
+/*
+tile_sides :: proc(ts: TileSource, xform: Transform) -> [4]Side {
+	sides : [4]Side = ts.sides
 	switch ts.sym {
 	case .X:
-		return xform == .None
 	case .T:
-		return xform != .FlipH
+		switch xform {
+		case .None:
+		case .Rotate90:
+			sides = sides.xyzw
+		case .FlipH:
+			sides = sides.xyzw
+		case .FlipV:
+			sides = sides.xyzw
+		case .FlipV_Rotate90:
+			sides = sides.xyzw
+		}
 	case .I:
-		return xform == .None || xform == .Rotate90
-	case .L:
-		return xform != .Rotate90
+		switch xform {
+		case .None:
+		case .Rotate90:
+			sides = sides.xyzw
+		case .FlipH:
+			sides = sides.xyzw
+		case .FlipV:
+			sides = sides.xyzw
+		case .FlipV_Rotate90:
+			sides = sides.xyzw
+		}
 	}
-	return false
+	return sides
 }
+*/
 Tile :: struct {
 	tex:   Texture2D,
 	xform: Transform,
 }
-// tiles_in_source :: proc(ts: TileSource) -> [5]Maybe(Transform) {
-// }
 transform_mat4 :: proc(t: Transform) -> mat4 {
 	m: mat4
 	switch t {

@@ -202,31 +202,40 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	gl.ClearColor(0.007843, 0.02353, 0.02745, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
+
 	sources : [5]TileSource = {
-		{r.textures.corner, .L},
-		{r.textures.cross, .I},
-		{r.textures.empty, .X},
-		{r.textures.line, .I},
-		{r.textures.t, .T},
+		{r.textures.corner, .L, {.OPEN, .OPEN, .OPEN, .OPEN}, L_xforms[:]},
+		{r.textures.cross, .I, {.OPEN, .OPEN, .OPEN, .OPEN}, I_xforms[:]},
+		{r.textures.empty, .X, {.OPEN, .OPEN, .OPEN, .OPEN}, X_xforms[:]},
+		{r.textures.line, .I,  {.OPEN, .OPEN, .OPEN, .OPEN}, I_xforms[:]},
+		{r.textures.t, .T, {.OPEN, .OPEN, .OPEN, .OPEN}, T_xforms[:] },
 	}
 
 	shader := r.shaders.sprite
 	orig_x: f32 = 10
+	orig_y: f32 = 10
 	x: f32 = orig_x
-	y: f32 = 10
+	y: f32 = orig_y
 	w: f32 = 100
 	h: f32 = 100
 	space: f32 = 10
-	for xform in all_transforms {
-		m := transform_mat4(xform)
-		for ts in sources {
-			if tile_src_contains_transform(ts, xform) {
-				draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
-			}
-			x += w + space
+	for ts in sources {
+		y = orig_y
+		for xform in ts.xforms {
+			m := transform_mat4(xform)
+			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
+			y += h + space
 		}
-		x = orig_x
-		y += h + space
+		// tiles := tiles_in_source(ts)
+		// for maybe_tile in tiles {
+		// 	tile, ok := maybe_tile.?
+		// 	if ok {
+		// 		m := transform_mat4(tile.xform)
+		// 		draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
+		// 	}
+		// 	y += h + space
+		// }
+		x += w + space
 	}
 
 	gl_report_error()
