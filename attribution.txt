@@ -1,0 +1,3 @@
+Knots tileset textures by Maxim Gumin
+  licensed MIT
+  downloaded from https://github.com/mxgmn/WaveFunctionCollapse
