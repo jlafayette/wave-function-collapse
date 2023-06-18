@@ -4,6 +4,14 @@ import glm "core:math/linalg/glsl"
 
 mat4 :: glm.mat4
 
+Tile :: enum {
+	CORNER,
+	CROSS,
+	EMPTY,
+	LINE,
+	T,
+}
+
 Sym :: enum {
 	X, // None (-)
 	T, // (-, rotate90, flipV, flipV+rotate90)
@@ -30,10 +38,16 @@ I_xforms : [2]Transform = {.None, .Rotate90}
 L_xforms : [4]Transform = {.None, .FlipH, .FlipV, .FlipV_Rotate90}
 
 TileSource :: struct {
-	tex: Texture2D,
 	sym: Sym,
 	sides: [4]Side,
 	xforms: []Transform,
+}
+tile_set : [Tile]TileSource = {
+	.CORNER = {.L, {.OPEN, .PIPE, .PIPE, .OPEN}, L_xforms[:]},
+	.CROSS = {.I, {.PIPE, .PIPE, .PIPE, .PIPE}, I_xforms[:]},
+	.EMPTY = {.X, {.OPEN, .OPEN, .OPEN, .OPEN}, X_xforms[:]},
+	.LINE = {.I,  {.PIPE, .OPEN, .PIPE, .OPEN}, I_xforms[:]},
+	.T = {.T, {.PIPE, .OPEN, .PIPE, .PIPE}, T_xforms[:] },
 }
 tile_sides :: proc(base_sides: [4]Side, xform: Transform) -> [4]Side {
 	sides : [4]Side = base_sides
@@ -49,10 +63,6 @@ tile_sides :: proc(base_sides: [4]Side, xform: Transform) -> [4]Side {
 		sides = sides.ywxz
 	}
 	return sides
-}
-Tile :: struct {
-	tex:   Texture2D,
-	xform: Transform,
 }
 transform_mat4 :: proc(t: Transform) -> mat4 {
 	m: mat4

@@ -145,17 +145,10 @@ draw_sprite :: proc(
 ShaderPrograms :: struct {
 	sprite: u32,
 }
-Textures :: struct {
-	corner: Texture2D,
-	cross:  Texture2D,
-	empty:  Texture2D,
-	line:   Texture2D,
-	t:      Texture2D,
-}
 
 Renderer :: struct {
 	shaders:  ShaderPrograms,
-	textures: Textures,
+	textures: [Tile]Texture2D,
 	buffers:  SpriteBuffers,
 }
 renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
@@ -168,22 +161,18 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 
 	r.buffers = sprite_buffers_init()
 
-	textures: [5]Texture2D
-	paths: [5]cstring = {
-		"Knots/corner.png",
-		"Knots/cross.png",
-		"Knots/empty.png",
-		"Knots/line.png",
-		"Knots/t.png",
+	textures: [Tile]Texture2D
+	paths: [Tile]cstring = {
+		.CORNER = "Knots/corner.png",
+		.CROSS = "Knots/cross.png",
+		.EMPTY = "Knots/empty.png",
+		.LINE = "Knots/line.png",
+		.T = "Knots/t.png",
 	}
-	for path, i in paths {
-		textures[i] = sprite_texture(path, r.shaders.sprite, projection)
+	for tile in Tile {
+		textures[tile] = sprite_texture(paths[tile], r.shaders.sprite, projection)
 	}
-	r.textures.corner = textures[0]
-	r.textures.cross = textures[1]
-	r.textures.empty = textures[2]
-	r.textures.line = textures[3]
-	r.textures.t = textures[4]
+	r.textures = textures
 
 	return true
 }
@@ -202,15 +191,6 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	gl.ClearColor(0.007843, 0.02353, 0.02745, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-
-	sources : [5]TileSource = {
-		{r.textures.corner, .L, {.OPEN, .PIPE, .PIPE, .OPEN}, L_xforms[:]},
-		{r.textures.cross, .I, {.PIPE, .PIPE, .PIPE, .PIPE}, I_xforms[:]},
-		{r.textures.empty, .X, {.OPEN, .OPEN, .OPEN, .OPEN}, X_xforms[:]},
-		{r.textures.line, .I,  {.PIPE, .OPEN, .PIPE, .OPEN}, I_xforms[:]},
-		{r.textures.t, .T, {.PIPE, .OPEN, .PIPE, .PIPE}, T_xforms[:] },
-	}
-
 	shader := r.shaders.sprite
 	orig_x: f32 = 10
 	orig_y: f32 = 10
@@ -219,45 +199,39 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	w: f32 = 100
 	h: f32 = 100
 	space: f32 = 10
-	for ts in sources {
+	for tile in Tile {
+
+		ts := tile_set[tile]
+
 		y = orig_y
 		for xform in ts.xforms {
 			m := transform_mat4(xform)
-			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
+			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
 
 			// draw sides
 			sides := tile_sides(ts.sides, xform)
 			side := sides[0]
 			color : glm.vec3 = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x, y+(h/2)}, {10, 10}, m, color)
 
 			side = sides[1]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+(w/2), y}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+(w/2), y}, {10, 10}, m, color)
 
 			side = sides[2]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
 
 			side = sides[3]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
 			
 			y += h + space
 		}
-		// tiles := tiles_in_source(ts)
-		// for maybe_tile in tiles {
-		// 	tile, ok := maybe_tile.?
-		// 	if ok {
-		// 		m := transform_mat4(tile.xform)
-		// 		draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
-		// 	}
-		// 	y += h + space
-		// }
 		x += w + space
 	}
 
