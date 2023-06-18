@@ -204,11 +204,11 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 
 
 	sources : [5]TileSource = {
-		{r.textures.corner, .L, {.OPEN, .OPEN, .OPEN, .OPEN}, L_xforms[:]},
-		{r.textures.cross, .I, {.OPEN, .OPEN, .OPEN, .OPEN}, I_xforms[:]},
+		{r.textures.corner, .L, {.OPEN, .PIPE, .PIPE, .OPEN}, L_xforms[:]},
+		{r.textures.cross, .I, {.PIPE, .PIPE, .PIPE, .PIPE}, I_xforms[:]},
 		{r.textures.empty, .X, {.OPEN, .OPEN, .OPEN, .OPEN}, X_xforms[:]},
-		{r.textures.line, .I,  {.OPEN, .OPEN, .OPEN, .OPEN}, I_xforms[:]},
-		{r.textures.t, .T, {.OPEN, .OPEN, .OPEN, .OPEN}, T_xforms[:] },
+		{r.textures.line, .I,  {.PIPE, .OPEN, .PIPE, .OPEN}, I_xforms[:]},
+		{r.textures.t, .T, {.PIPE, .OPEN, .PIPE, .PIPE}, T_xforms[:] },
 	}
 
 	shader := r.shaders.sprite
@@ -224,6 +224,29 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 		for xform in ts.xforms {
 			m := transform_mat4(xform)
 			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
+
+			// draw sides
+			sides := tile_sides(ts.sides, xform)
+			side := sides[0]
+			color : glm.vec3 = {0.5, 0.5, 1}
+			if side == .PIPE do color = {0.5, 1, 0.5}
+			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x, y+(h/2)}, {10, 10}, m, color)
+
+			side = sides[1]
+			color = {0.5, 0.5, 1}
+			if side == .PIPE do color = {0.5, 1, 0.5}
+			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+(w/2), y}, {10, 10}, m, color)
+
+			side = sides[2]
+			color = {0.5, 0.5, 1}
+			if side == .PIPE do color = {0.5, 1, 0.5}
+			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
+
+			side = sides[3]
+			color = {0.5, 0.5, 1}
+			if side == .PIPE do color = {0.5, 1, 0.5}
+			draw_sprite(shader, ts.tex.id, r.buffers.vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
+			
 			y += h + space
 		}
 		// tiles := tiles_in_source(ts)

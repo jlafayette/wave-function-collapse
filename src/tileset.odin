@@ -35,39 +35,21 @@ TileSource :: struct {
 	sides: [4]Side,
 	xforms: []Transform,
 }
-/*
-tile_sides :: proc(ts: TileSource, xform: Transform) -> [4]Side {
-	sides : [4]Side = ts.sides
-	switch ts.sym {
-	case .X:
-	case .T:
-		switch xform {
-		case .None:
-		case .Rotate90:
-			sides = sides.xyzw
-		case .FlipH:
-			sides = sides.xyzw
-		case .FlipV:
-			sides = sides.xyzw
-		case .FlipV_Rotate90:
-			sides = sides.xyzw
-		}
-	case .I:
-		switch xform {
-		case .None:
-		case .Rotate90:
-			sides = sides.xyzw
-		case .FlipH:
-			sides = sides.xyzw
-		case .FlipV:
-			sides = sides.xyzw
-		case .FlipV_Rotate90:
-			sides = sides.xyzw
-		}
+tile_sides :: proc(base_sides: [4]Side, xform: Transform) -> [4]Side {
+	sides : [4]Side = base_sides
+	switch xform {
+	case .None:
+	case .Rotate90:
+		sides = sides.wxyz
+	case .FlipH:
+		sides = sides.zyxw
+	case .FlipV:
+		sides = sides.xwzy
+	case .FlipV_Rotate90:
+		sides = sides.ywxz
 	}
 	return sides
 }
-*/
 Tile :: struct {
 	tex:   Texture2D,
 	xform: Transform,
