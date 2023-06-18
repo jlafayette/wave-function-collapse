@@ -161,7 +161,6 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 
 	r.buffers = sprite_buffers_init()
 
-	textures: [Tile]Texture2D
 	paths: [Tile]cstring = {
 		.CORNER = "Knots/corner.png",
 		.CROSS = "Knots/cross.png",
@@ -170,9 +169,8 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 		.T = "Knots/t.png",
 	}
 	for tile in Tile {
-		textures[tile] = sprite_texture(paths[tile], r.shaders.sprite, projection)
+		r.textures[tile] = sprite_texture(paths[tile], r.shaders.sprite, projection)
 	}
-	r.textures = textures
 
 	return true
 }
@@ -183,7 +181,6 @@ renderer_destroy :: proc(r: ^Renderer) {
 
 game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	r := &g.renderer
-	game := g
 	vao := r.buffers.vao
 
 	// render
@@ -206,29 +203,29 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 		y = orig_y
 		for xform in ts.xforms {
 			m := transform_mat4(xform)
-			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x, y}, {w, h}, m, {1, 1, 1})
+			draw_sprite(shader, r.textures[tile].id, vao, {x, y}, {w, h}, m, {1, 1, 1})
 
 			// draw sides
 			sides := tile_sides(ts.sides, xform)
 			side := sides[0]
 			color : glm.vec3 = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x, y+(h/2)}, {10, 10}, m, color)
 
 			side = sides[1]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+(w/2), y}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x+(w/2), y}, {10, 10}, m, color)
 
 			side = sides[2]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
 
 			side = sides[3]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, r.buffers.vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
 			
 			y += h + space
 		}
