@@ -205,7 +205,7 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 			m := transform_mat4(xform)
 			draw_sprite(shader, r.textures[tile].id, vao, {x, y}, {w, h}, m, {1, 1, 1})
 
-			// draw sides
+			// draw sides (for debugging if sides+transform is working correctly)
 			sides := tile_sides(ts.sides, xform)
 			side := sides[0]
 			color : glm.vec3 = {0.5, 0.5, 1}

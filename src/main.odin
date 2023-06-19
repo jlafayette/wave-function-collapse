@@ -78,6 +78,7 @@ Game :: struct {
 	sec_elapsed:   f64,
 	projection:    glm.mat4,
 	renderer:      Renderer,
+	grid: Grid,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	g.window_width = width
@@ -86,9 +87,12 @@ game_init :: proc(g: ^Game, width, height: int) {
 	g.projection = glm.mat4Ortho3d(0, f32(width), f32(height), 0, -1.0, 1)
 
 	assert(renderer_init(&g.renderer, g.projection), "Failed to init renderer")
+
+	grid_init(&g.grid)
 }
 game_destroy :: proc(g: ^Game) {
 	renderer_destroy(&g.renderer)
+	grid_destroy(&g.grid)
 }
 
 run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32) {
