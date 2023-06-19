@@ -79,6 +79,7 @@ Game :: struct {
 	projection:    glm.mat4,
 	renderer:      Renderer,
 	grid: Grid,
+	writer: Writer,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	g.window_width = width
@@ -89,10 +90,12 @@ game_init :: proc(g: ^Game, width, height: int) {
 	assert(renderer_init(&g.renderer, g.projection), "Failed to init renderer")
 
 	grid_init(&g.grid)
+	assert(writer_init(&g.writer, TERMINAL_TTF, 16, g.projection), "Failed to init text writer")
 }
 game_destroy :: proc(g: ^Game) {
 	renderer_destroy(&g.renderer)
 	grid_destroy(&g.grid)
+	writer_destroy(&g.writer)
 }
 
 run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32) {

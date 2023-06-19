@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "core:strings"
 import "core:slice"
+import "core:strconv"
 import glm "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
@@ -80,6 +81,10 @@ sprite_texture :: proc(filename: cstring, sprite_program: u32, projection: glm.m
 		internal_format = gl.RGBA
 		image_format = gl.RGBA
 	}
+	if nr_channels == 1 {
+		internal_format = gl.RED
+		image_format = gl.RED
+	}
 	defer image.image_free(data)
 	fmt.println("w:", tex.width, "h:", tex.height, "channels:", nr_channels)
 	// 1 (byte-alignment), default is 4 (word alignment)
@@ -144,18 +149,25 @@ draw_sprite :: proc(
 
 ShaderPrograms :: struct {
 	sprite: u32,
+	sprite_grayscale: u32,
 }
 
 Renderer :: struct {
 	shaders:  ShaderPrograms,
 	textures: [Tile]Texture2D,
+	square:   Texture2D,
 	buffers:  SpriteBuffers,
 }
 renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 	ok: bool
 	r.shaders.sprite, ok = gl.load_shaders_source(sprite_vertex_source, sprite_fragment_source)
 	if !ok {
-		fmt.eprintln("Failed to create GLSL program")
+		fmt.eprintln("Failed to create sprite GLSL program")
+		return false
+	}
+	r.shaders.sprite_grayscale, ok = gl.load_shaders_source(sprite_vertex_source, sprite_grayscale_fragment_source)
+	if !ok {
+		fmt.eprintln("Failed to create grayscale GLSL program")
 		return false
 	}
 
@@ -171,6 +183,7 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 	for tile in Tile {
 		r.textures[tile] = sprite_texture(paths[tile], r.shaders.sprite, projection)
 	}
+	r.square = sprite_texture("square.png", r.shaders.sprite_grayscale, projection)
 
 	return true
 }
@@ -231,6 +244,21 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 		}
 		x += w + space
 	}
+	orig_x = x
+	orig_y = y
+	for yi:=0; yi<g.grid.col_count; yi+=1 {
+		x = orig_x
+		for xi:=0; xi<g.grid.row_count; xi+=1 {
+			draw_sprite(r.shaders.sprite_grayscale, r.square.id, vao, {x, y}, {100, 100}, glm.mat4(1), {1, 1, 1})
+			buf : [2]byte
+			square := grid_get(&g.grid, xi, yi)
+			text := strconv.itoa(buf[:], len(square.options))
+			size := text_get_size(&g.writer, text)
+			write_text(&g.writer, text, {x, y}+{50, 50}-size/2, {0.5, 0.5, 0.5})
+			x += 100
+		}
+		y += 100
+	}
 
 	gl_report_error()
 	sdl2.GL_SwapWindow(window)
@@ -269,5 +297,18 @@ uniform vec3 spriteColor;
 
 void main() {
 	color = vec4(spriteColor, 1.0) * texture(image, TexCoords);
+}
+`
+
+sprite_grayscale_fragment_source := `#version 330 core
+
+in vec2 TexCoords;
+out vec4 color;
+
+uniform sampler2D image;
+uniform vec3 spriteColor;
+
+void main() {
+	color = vec4(spriteColor, 1.0) * texture(image, TexCoords).rrra;
 }
 `
