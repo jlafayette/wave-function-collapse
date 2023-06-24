@@ -32,25 +32,25 @@ Side :: enum {
 	OPEN,
 	PIPE,
 }
-X_xforms : [1]Transform = {.None}
-T_xforms : [4]Transform = {.None, .Rotate90, .FlipV, .FlipV_Rotate90}
-I_xforms : [2]Transform = {.None, .Rotate90}
-L_xforms : [4]Transform = {.None, .FlipH, .FlipV, .FlipV_Rotate90}
+X_xforms: [1]Transform = {.None}
+T_xforms: [4]Transform = {.None, .Rotate90, .FlipV, .FlipV_Rotate90}
+I_xforms: [2]Transform = {.None, .Rotate90}
+L_xforms: [4]Transform = {.None, .FlipH, .FlipV, .FlipV_Rotate90}
 
 TileSource :: struct {
-	sym: Sym,
-	sides: [4]Side,
+	sym:    Sym,
+	sides:  [4]Side,
 	xforms: []Transform,
 }
-tile_set : [Tile]TileSource = {
+tile_set: [Tile]TileSource = {
 	.CORNER = {.L, {.OPEN, .PIPE, .PIPE, .OPEN}, L_xforms[:]},
 	.CROSS = {.I, {.PIPE, .PIPE, .PIPE, .PIPE}, I_xforms[:]},
 	.EMPTY = {.X, {.OPEN, .OPEN, .OPEN, .OPEN}, X_xforms[:]},
-	.LINE = {.I,  {.PIPE, .OPEN, .PIPE, .OPEN}, I_xforms[:]},
-	.T = {.T, {.PIPE, .OPEN, .PIPE, .PIPE}, T_xforms[:] },
+	.LINE = {.I, {.PIPE, .OPEN, .PIPE, .OPEN}, I_xforms[:]},
+	.T = {.T, {.PIPE, .OPEN, .PIPE, .PIPE}, T_xforms[:]},
 }
 tile_sides :: proc(base_sides: [4]Side, xform: Transform) -> [4]Side {
-	sides : [4]Side = base_sides
+	sides: [4]Side = base_sides
 	switch xform {
 	case .None:
 	case .Rotate90:

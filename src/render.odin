@@ -148,7 +148,7 @@ draw_sprite :: proc(
 }
 
 ShaderPrograms :: struct {
-	sprite: u32,
+	sprite:           u32,
 	sprite_grayscale: u32,
 }
 
@@ -165,7 +165,10 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 		fmt.eprintln("Failed to create sprite GLSL program")
 		return false
 	}
-	r.shaders.sprite_grayscale, ok = gl.load_shaders_source(sprite_vertex_source, sprite_grayscale_fragment_source)
+	r.shaders.sprite_grayscale, ok = gl.load_shaders_source(
+		sprite_vertex_source,
+		sprite_grayscale_fragment_source,
+	)
 	if !ok {
 		fmt.eprintln("Failed to create grayscale GLSL program")
 		return false
@@ -175,10 +178,10 @@ renderer_init :: proc(r: ^Renderer, projection: glm.mat4) -> bool {
 
 	paths: [Tile]cstring = {
 		.CORNER = "Knots/corner.png",
-		.CROSS = "Knots/cross.png",
-		.EMPTY = "Knots/empty.png",
-		.LINE = "Knots/line.png",
-		.T = "Knots/t.png",
+		.CROSS  = "Knots/cross.png",
+		.EMPTY  = "Knots/empty.png",
+		.LINE   = "Knots/line.png",
+		.T      = "Knots/t.png",
 	}
 	for tile in Tile {
 		r.textures[tile] = sprite_texture(paths[tile], r.shaders.sprite, projection)
@@ -221,40 +224,64 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 			// draw sides (for debugging if sides+transform is working correctly)
 			sides := tile_sides(ts.sides, xform)
 			side := sides[0]
-			color : glm.vec3 = {0.5, 0.5, 1}
+			color: glm.vec3 = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, vao, {x, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x, y + (h / 2)}, {10, 10}, m, color)
 
 			side = sides[1]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, vao, {x+(w/2), y}, {10, 10}, m, color)
+			draw_sprite(shader, r.textures[tile].id, vao, {x + (w / 2), y}, {10, 10}, m, color)
 
 			side = sides[2]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, vao, {x+w-10, y+(h/2)}, {10, 10}, m, color)
+			draw_sprite(
+				shader,
+				r.textures[tile].id,
+				vao,
+				{x + w - 10, y + (h / 2)},
+				{10, 10},
+				m,
+				color,
+			)
 
 			side = sides[3]
 			color = {0.5, 0.5, 1}
 			if side == .PIPE do color = {0.5, 1, 0.5}
-			draw_sprite(shader, r.textures[tile].id, vao, {x+(w/2), y+h-10}, {10, 10}, m, color)
-			
+			draw_sprite(
+				shader,
+				r.textures[tile].id,
+				vao,
+				{x + (w / 2), y + h - 10},
+				{10, 10},
+				m,
+				color,
+			)
+
 			y += h + space
 		}
 		x += w + space
 	}
 	orig_x = x
 	orig_y = y
-	for yi:=0; yi<g.grid.col_count; yi+=1 {
+	for yi := 0; yi < g.grid.col_count; yi += 1 {
 		x = orig_x
-		for xi:=0; xi<g.grid.row_count; xi+=1 {
-			draw_sprite(r.shaders.sprite_grayscale, r.square.id, vao, {x, y}, {100, 100}, glm.mat4(1), {1, 1, 1})
-			buf : [2]byte
+		for xi := 0; xi < g.grid.row_count; xi += 1 {
+			draw_sprite(
+				r.shaders.sprite_grayscale,
+				r.square.id,
+				vao,
+				{x, y},
+				{100, 100},
+				glm.mat4(1),
+				{1, 1, 1},
+			)
+			buf: [2]byte
 			square := grid_get(&g.grid, xi, yi)
 			text := strconv.itoa(buf[:], len(square.options))
 			size := text_get_size(&g.writer, text)
-			write_text(&g.writer, text, {x, y}+{50, 50}-size/2, {0.5, 0.5, 0.5})
+			write_text(&g.writer, text, {x, y} + {50, 50} - size / 2, {0.5, 0.5, 0.5})
 			x += 100
 		}
 		y += 100

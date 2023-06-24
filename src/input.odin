@@ -3,7 +3,8 @@ package main
 import "vendor:sdl2"
 
 Inputs :: struct {
-	quit: bool,
+	quit:      bool,
+	next_step: bool,
 }
 
 game_handle_inputs :: proc(g: ^Game) -> Inputs {
@@ -16,6 +17,10 @@ game_handle_inputs :: proc(g: ^Game) -> Inputs {
 		case .KEYUP:
 			if event.key.keysym.sym == .ESCAPE {
 				sdl2.PushEvent(&sdl2.Event{type = .QUIT})
+			}
+		case .KEYDOWN:
+			if event.key.keysym.sym == .D {
+				inputs.next_step = true
 			}
 		}
 	}

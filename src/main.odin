@@ -2,14 +2,14 @@ package main
 
 import "core:c"
 import "core:fmt"
-import "core:mem"
 import "core:math"
 import "core:math/rand"
+import "core:mem"
 import "core:os"
 import "core:runtime"
-import "core:time"
 import "core:slice"
 import "core:strings"
+import "core:time"
 import glm "core:math/linalg/glsl"
 
 import "vendor:sdl2"
@@ -78,8 +78,8 @@ Game :: struct {
 	sec_elapsed:   f64,
 	projection:    glm.mat4,
 	renderer:      Renderer,
-	grid: Grid,
-	writer: Writer,
+	grid:          Grid,
+	writer:        Writer,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	g.window_width = width
@@ -164,6 +164,9 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 		inputs := game_handle_inputs(&game)
 		if inputs.quit {
 			break game_loop
+		}
+		if inputs.next_step {
+			wfc_step(&game)
 		}
 
 		game_render(&game, window)
