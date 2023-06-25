@@ -268,20 +268,30 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	for yi := 0; yi < g.grid.col_count; yi += 1 {
 		x = orig_x
 		for xi := 0; xi < g.grid.row_count; xi += 1 {
-			draw_sprite(
-				r.shaders.sprite_grayscale,
-				r.square.id,
-				vao,
-				{x, y},
-				{100, 100},
-				glm.mat4(1),
-				{1, 1, 1},
-			)
-			buf: [2]byte
-			square := grid_get(&g.grid, xi, yi)
-			text := strconv.itoa(buf[:], len(square.options))
-			size := text_get_size(&g.writer, text)
-			write_text(&g.writer, text, {x, y} + {50, 50} - size / 2, {0.5, 0.5, 0.5})
+			square, ok := grid_get(&g.grid, xi, yi).?
+			if !ok {
+				fmt.printf("error, no square at %d,%d\n", xi, yi)
+				continue
+			}
+			if square.collapsed {
+				to := g.tile_options[square.option]
+				m := transform_mat4(to.xform)
+				draw_sprite(shader, r.textures[to.tile].id, vao, {x, y}, {w, h}, m, {1, 1, 1})
+			} else {
+				draw_sprite(
+					r.shaders.sprite_grayscale,
+					r.square.id,
+					vao,
+					{x, y},
+					{100, 100},
+					glm.mat4(1),
+					{1, 1, 1},
+				)
+				buf: [2]byte
+				text := strconv.itoa(buf[:], len(square.options))
+				size := text_get_size(&g.writer, text)
+				write_text(&g.writer, text, {x, y} + {50, 50} - size / 2, {0.5, 0.5, 0.5})
+			}
 			x += 100
 		}
 		y += 100

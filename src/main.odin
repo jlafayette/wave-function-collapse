@@ -80,6 +80,7 @@ Game :: struct {
 	renderer:      Renderer,
 	grid:          Grid,
 	writer:        Writer,
+	tile_options: [dynamic]TileOption,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	g.window_width = width
@@ -91,6 +92,13 @@ game_init :: proc(g: ^Game, width, height: int) {
 
 	grid_init(&g.grid)
 	assert(writer_init(&g.writer, TERMINAL_TTF, 16, g.projection), "Failed to init text writer")
+
+	for tile in Tile {
+		ts := tile_set[tile]
+		for xform in ts.xforms {
+			append(&g.tile_options, TileOption{tile, xform})
+		}
+	}
 }
 game_destroy :: proc(g: ^Game) {
 	renderer_destroy(&g.renderer)

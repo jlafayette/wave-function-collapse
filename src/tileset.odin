@@ -11,6 +11,10 @@ Tile :: enum {
 	LINE,
 	T,
 }
+TileOption :: struct {
+	tile: Tile,
+	xform: Transform,
+}
 
 Sym :: enum {
 	X, // None (-)
