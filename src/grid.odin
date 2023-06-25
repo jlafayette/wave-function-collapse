@@ -5,24 +5,27 @@ import "core:fmt"
 OPTIONS_COUNT :: 13
 
 Grid :: struct {
-	squares:   [dynamic]Square,
+	squares:   [dynamic]^Square,
 	row_count: int,
 	col_count: int,
 }
 Square :: struct {
-	backing:   [dynamic]int,
-	options:   []int,
+	options:   [dynamic]int,
 	collapsed: bool,
 }
 square_init :: proc(s: ^Square, options_count: int) {
-	reserve(&s.backing, options_count)
+	reserve(&s.options, options_count)
 	for i := 0; i < options_count; i += 1 {
-		append(&s.backing, i)
+		append(&s.options, i)
 	}
-	s.options = s.backing[:]
 }
 square_destroy :: proc(s: ^Square) {
-	delete(s.backing)
+	delete(s.options)
+	free(s)
+}
+
+square_less_options :: proc(i, j: ^Square) -> bool {
+	return len(i.options) < len(j.options)
 }
 
 grid_init :: proc(grid: ^Grid) {
@@ -31,14 +34,14 @@ grid_init :: proc(grid: ^Grid) {
 	grid.col_count = 3
 	size := grid.row_count * grid.col_count
 	for i := 0; i < size; i += 1 {
-		square: Square
-		square_init(&square, OPTIONS_COUNT)
+		square: ^Square = new(Square)
+		square_init(square, OPTIONS_COUNT)
 		append(&grid.squares, square)
 	}
 }
 grid_destroy :: proc(grid: ^Grid) {
 	for _, i in grid.squares {
-		square_destroy(&grid.squares[i])
+		square_destroy(grid.squares[i])
 	}
 	delete(grid.squares)
 }
@@ -47,5 +50,5 @@ grid_get :: proc(g: ^Grid, x, y: int) -> (square: ^Square) {
 	assert(x >= 0 && y >= 0)
 	assert(x < g.row_count && y < g.col_count)
 	i := y * g.row_count + x
-	return &g.squares[i]
+	return g.squares[i]
 }
