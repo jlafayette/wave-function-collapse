@@ -72,6 +72,7 @@ main :: proc() {
 DEBUG_FPS :: true
 
 ModePlay :: struct {
+	steps_per_frame: int,
 	frames_per_step: int,
 	frames_elapsed:  int,
 }
@@ -157,12 +158,12 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 	game_loop: for {
 		start_tick := time.tick_now()
 		dt = f32(ms_elapsed / 1000)
-		when DEBUG_FPS {
-			fmt.printf("\nFPS: %f\n", fps)
-			fmt.printf("ms: %f\n", ms_elapsed)
-			fmt.printf("dt: %f\n", dt)
-			fmt.printf("tgt dt: %f\n", target_dt)
-		}
+		// when DEBUG_FPS {
+		// 	fmt.printf("\nFPS: %f\n", fps)
+		// 	fmt.printf("ms: %f\n", ms_elapsed)
+		// 	fmt.printf("dt: %f\n", dt)
+		// 	fmt.printf("tgt dt: %f\n", target_dt)
+		// }
 		game_duration := time.tick_since(game_start_tick)
 		game.sec_elapsed = time.duration_seconds(game_duration)
 
@@ -174,7 +175,7 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 			_hi_ms = max(ms_elapsed, _hi_ms)
 			if time.duration_seconds(time.tick_since(_sec_tick)) >= 1.0 {
 				fmt.printf(
-					"%d FPS, min: %.2f, max: %.2f, avg: %.2f\n",
+					"\n%d FPS, min: %.2f, max: %.2f, avg: %.2f\n",
 					_frames,
 					_lo_ms,
 					_hi_ms,
@@ -198,24 +199,31 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 			case ModePlay:
 				game.mode = ModePause{}
 			case ModePause:
-				game.mode = ModePlay{1, 0}
+				game.mode = ModePlay{20, 1, 0}
 				fmt.println("play", game.mode)
 			}
 		}
-		step: bool = inputs.next_step
+		steps: int = 0
+		if inputs.next_step {
+			steps += 1
+		}
 		play_mode: ModePlay
 		ok: bool
 		play_mode, ok = game.mode.(ModePlay)
 		if ok {
-			new_mode := play_mode
-			new_mode.frames_elapsed += 1
-			if new_mode.frames_elapsed >= new_mode.frames_per_step {
-				step = true
-				new_mode.frames_elapsed = 0
+			if play_mode.steps_per_frame > 0 {
+				steps = play_mode.steps_per_frame
+			} else {
+				new_mode := play_mode
+				new_mode.frames_elapsed += 1
+				if new_mode.frames_elapsed >= new_mode.frames_per_step {
+					steps += 1
+					new_mode.frames_elapsed = 0
+				}
+				game.mode = new_mode
 			}
-			game.mode = new_mode
 		}
-		if step {
+		for i := steps; i > 0; i -= 1 {
 			wfc_step(&game)
 		}
 

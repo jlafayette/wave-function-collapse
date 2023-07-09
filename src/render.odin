@@ -270,6 +270,9 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window, square_width, square_height:
 	hw := w / 2
 	hh := h / 2
 	display_debug: bool = w >= 100 && h >= 60
+	// if !display_debug {
+	// 	return
+	// }
 	for yi := 0; yi < g.grid.col_count; yi += 1 {
 		x = orig_x
 		for xi := 0; xi < g.grid.row_count; xi += 1 {

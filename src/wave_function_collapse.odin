@@ -10,7 +10,7 @@ import "core:math/rand"
 wfc_step :: proc(game: ^Game) {
 	grid := &game.grid
 	if grid.resolved do return
-	fmt.println("step")
+	fmt.print(".")
 
 	// copy so sorting doesn't rearange placement in grid
 	squares_backing := make_dynamic_array_len(
