@@ -10,13 +10,13 @@ Grid :: struct {
 	squares:   [dynamic]^Square,
 	row_count: int,
 	col_count: int,
-	resolved: bool,
+	resolved:  bool,
 }
 Square :: struct {
-	x: int,
-	y: int,
+	x:         int,
+	y:         int,
 	options:   [dynamic]int,
-	option: int,
+	option:    int,
 	collapsed: bool,
 }
 square_init :: proc(s: ^Square, x, y: int, options_count: int) {
@@ -33,7 +33,7 @@ square_destroy :: proc(s: ^Square) {
 }
 square_collapse :: proc(s: ^Square, r: ^rand.Rand) {
 	f := rand.float32(r) * cast(f32)len(s.options)
-	i : int = cast(int)math.floor(f)
+	i: int = cast(int)math.floor(f)
 	s.option = s.options[i]
 	s.collapsed = true
 }
@@ -50,12 +50,12 @@ square_less_options :: proc(i, j: ^Square) -> bool {
 }
 
 grid_init :: proc(grid: ^Grid, row_count, col_count: int) {
-	reserve(&grid.squares, row_count*col_count)
+	reserve(&grid.squares, row_count * col_count)
 	grid.row_count = row_count
 	grid.col_count = col_count
 	size := grid.row_count * grid.col_count
-	for y:=0; y<grid.col_count; y+=1 {
-		for x:=0; x<grid.row_count; x+=1 {
+	for y := 0; y < grid.col_count; y += 1 {
+		for x := 0; x < grid.row_count; x += 1 {
 			square: ^Square = new(Square)
 			square_init(square, x, y, OPTIONS_COUNT)
 			append(&grid.squares, square)

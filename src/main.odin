@@ -73,7 +73,7 @@ DEBUG_FPS :: true
 
 ModePlay :: struct {
 	frames_per_step: int,
-	frames_elapsed: int,
+	frames_elapsed:  int,
 }
 ModePause :: struct {}
 Mode :: union {
@@ -90,16 +90,16 @@ Game :: struct {
 	renderer:      Renderer,
 	grid:          Grid,
 	writer:        Writer,
-	tile_options: [dynamic]TileOption,
-	mode: Mode,
-	tile_size: f32,
+	tile_options:  [dynamic]TileOption,
+	mode:          Mode,
+	tile_size:     f32,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	size: f32 = 10
 	rows := cast(int)math.floor(f32(width) / size)
 	cols := cast(int)math.floor(f32(height) / size)
 	g.tile_size = size
-	
+
 	g.window_width = width
 	g.window_height = height
 	g.mode = ModePause{}
@@ -203,8 +203,8 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 			}
 		}
 		step: bool = inputs.next_step
-		play_mode : ModePlay
-		ok : bool
+		play_mode: ModePlay
+		ok: bool
 		play_mode, ok = game.mode.(ModePlay)
 		if ok {
 			new_mode := play_mode

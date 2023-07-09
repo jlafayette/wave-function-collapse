@@ -267,8 +267,9 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window, square_width, square_height:
 	*/
 	orig_x = x
 	orig_y = y
-	hw := w/2
-	hh := h/2
+	hw := w / 2
+	hh := h / 2
+	display_debug: bool = w >= 100 && h >= 60
 	for yi := 0; yi < g.grid.col_count; yi += 1 {
 		x = orig_x
 		for xi := 0; xi < g.grid.row_count; xi += 1 {
@@ -282,16 +283,16 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window, square_width, square_height:
 				m := transform_mat4(to.xform)
 				draw_sprite(shader, r.textures[to.tile].id, vao, {x, y}, {w, h}, m, {1, 1, 1})
 			} else {
-				draw_sprite(
-					r.shaders.sprite_grayscale,
-					r.square.id,
-					vao,
-					{x, y},
-					{w, h},
-					glm.mat4(1),
-					{1, 1, 1},
-				)
-				if w >= 100 && h >= 60 {
+				if display_debug {
+					draw_sprite(
+						r.shaders.sprite_grayscale,
+						r.square.id,
+						vao,
+						{x, y},
+						{w, h},
+						glm.mat4(1),
+						{1, 1, 1},
+					)
 					buf: [2]byte
 					text := strconv.itoa(buf[:], len(square.options))
 					size := text_get_size(&g.writer, text)

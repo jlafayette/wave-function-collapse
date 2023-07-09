@@ -3,8 +3,8 @@ package main
 import "vendor:sdl2"
 
 Inputs :: struct {
-	quit:      bool,
-	next_step: bool,
+	quit:        bool,
+	next_step:   bool,
 	play_toggle: bool,
 }
 

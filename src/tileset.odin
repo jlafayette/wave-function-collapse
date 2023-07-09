@@ -12,7 +12,7 @@ Tile :: enum {
 	T,
 }
 TileOption :: struct {
-	tile: Tile,
+	tile:  Tile,
 	xform: Transform,
 }
 

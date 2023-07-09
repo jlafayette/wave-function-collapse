@@ -13,7 +13,11 @@ wfc_step :: proc(game: ^Game) {
 	fmt.println("step")
 
 	// copy so sorting doesn't rearange placement in grid
-	squares_backing := make_dynamic_array_len([dynamic]^Square, len(grid.squares), context.temp_allocator)
+	squares_backing := make_dynamic_array_len(
+		[dynamic]^Square,
+		len(grid.squares),
+		context.temp_allocator,
+	)
 	for s, i in grid.squares {
 		squares_backing[i] = s
 	}
@@ -29,7 +33,7 @@ wfc_step :: proc(game: ^Game) {
 		grid.resolved = true
 		return
 	}
-	rand_mult: int = 0  // track how many we are randomly picking from
+	rand_mult: int = 0 // track how many we are randomly picking from
 	options_count := len(squares[0].options)
 	for s in squares {
 		if s.collapsed || len(s.options) > options_count {
@@ -81,7 +85,7 @@ wfc_step :: proc(game: ^Game) {
 			assert(false, "invalid number of neighbors")
 		}
 
-		j : int = 0
+		j: int = 0
 		for {
 			if j >= len(n.options) {
 				break
