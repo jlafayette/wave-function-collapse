@@ -205,12 +205,13 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	shader := r.shaders.sprite
-	orig_x: f32 = 10
-	orig_y: f32 = 10
+	orig_x: f32 = 0
+	orig_y: f32 = 0
 	x: f32 = orig_x
 	y: f32 = orig_y
 	w: f32 = 100
 	h: f32 = 100
+	/*
 	space: f32 = 10
 	for tile in Tile {
 
@@ -263,8 +264,11 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 		}
 		x += w + space
 	}
+	*/
 	orig_x = x
 	orig_y = y
+	hw := w/2
+	hh := h/2
 	for yi := 0; yi < g.grid.col_count; yi += 1 {
 		x = orig_x
 		for xi := 0; xi < g.grid.row_count; xi += 1 {
@@ -283,18 +287,18 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 					r.square.id,
 					vao,
 					{x, y},
-					{100, 100},
+					{w, h},
 					glm.mat4(1),
 					{1, 1, 1},
 				)
 				buf: [2]byte
 				text := strconv.itoa(buf[:], len(square.options))
 				size := text_get_size(&g.writer, text)
-				write_text(&g.writer, text, {x, y} + {50, 50} - size / 2, {0.5, 0.5, 0.5})
+				write_text(&g.writer, text, {x, y} + {hw, hh} - size / 2, {0.5, 0.5, 0.5})
 			}
-			x += 100
+			x += w
 		}
-		y += 100
+		y += h
 	}
 
 	gl_report_error()

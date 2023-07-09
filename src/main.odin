@@ -71,6 +71,16 @@ main :: proc() {
 
 DEBUG_FPS :: false
 
+ModePlay :: struct {
+	frames_per_step: int,
+	frames_elapsed: int,
+}
+ModePause :: struct {}
+Mode :: union {
+	ModePlay,
+	ModePause,
+}
+
 Game :: struct {
 	window_width:  int,
 	window_height: int,
@@ -81,10 +91,12 @@ Game :: struct {
 	grid:          Grid,
 	writer:        Writer,
 	tile_options: [dynamic]TileOption,
+	mode: Mode,
 }
 game_init :: proc(g: ^Game, width, height: int) {
 	g.window_width = width
 	g.window_height = height
+	g.mode = ModePause{}
 	rand.init(&g.rand, 111)
 	g.projection = glm.mat4Ortho3d(0, f32(width), f32(height), 0, -1.0, 1)
 
@@ -173,7 +185,29 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 		if inputs.quit {
 			break game_loop
 		}
-		if inputs.next_step {
+		if inputs.play_toggle {
+			switch m in game.mode {
+			case ModePlay:
+				game.mode = ModePause{}
+			case ModePause:
+				game.mode = ModePlay{1, 0}
+				fmt.println("play", game.mode)
+			}
+		}
+		step: bool = inputs.next_step
+		play_mode : ModePlay
+		ok : bool
+		play_mode, ok = game.mode.(ModePlay)
+		if ok {
+			new_mode := play_mode
+			new_mode.frames_elapsed += 1
+			if new_mode.frames_elapsed >= new_mode.frames_per_step {
+				step = true
+				new_mode.frames_elapsed = 0
+			}
+			game.mode = new_mode
+		}
+		if step {
 			wfc_step(&game)
 		}
 

@@ -10,6 +10,7 @@ Grid :: struct {
 	squares:   [dynamic]^Square,
 	row_count: int,
 	col_count: int,
+	resolved: bool,
 }
 Square :: struct {
 	x: int,
@@ -49,9 +50,9 @@ square_less_options :: proc(i, j: ^Square) -> bool {
 }
 
 grid_init :: proc(grid: ^Grid) {
-	reserve(&grid.squares, 9)
-	grid.row_count = 3
-	grid.col_count = 3
+	reserve(&grid.squares, 25)
+	grid.row_count = 5
+	grid.col_count = 5
 	size := grid.row_count * grid.col_count
 	for y:=0; y<grid.col_count; y+=1 {
 		for x:=0; x<grid.row_count; x+=1 {

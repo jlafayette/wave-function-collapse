@@ -5,6 +5,7 @@ import "vendor:sdl2"
 Inputs :: struct {
 	quit:      bool,
 	next_step: bool,
+	play_toggle: bool,
 }
 
 game_handle_inputs :: proc(g: ^Game) -> Inputs {
@@ -19,8 +20,11 @@ game_handle_inputs :: proc(g: ^Game) -> Inputs {
 				sdl2.PushEvent(&sdl2.Event{type = .QUIT})
 			}
 		case .KEYDOWN:
-			if event.key.keysym.sym == .D {
+			#partial switch event.key.keysym.sym {
+			case .D:
 				inputs.next_step = true
+			case .SPACE:
+				inputs.play_toggle = true
 			}
 		}
 	}

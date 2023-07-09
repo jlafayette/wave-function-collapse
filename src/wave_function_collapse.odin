@@ -8,8 +8,9 @@ import "core:math/rand"
 
 
 wfc_step :: proc(game: ^Game) {
+	grid := &game.grid
+	if grid.resolved do return
 	fmt.println("step")
-	grid := game.grid
 
 	// copy so sorting doesn't rearange placement in grid
 	squares_backing := make_dynamic_array_len([dynamic]^Square, len(grid.squares), context.temp_allocator)
@@ -25,6 +26,7 @@ wfc_step :: proc(game: ^Game) {
 
 	// pick random out of ones with least options
 	if squares[0].collapsed {
+		grid.resolved = true
 		return
 	}
 	rand_mult: int = 0  // track how many we are randomly picking from
@@ -52,7 +54,7 @@ wfc_step :: proc(game: ^Game) {
 	}
 
 	// remove options from neighbors
-	for maybe_n, i in grid_get_neighbors(&grid, square) {
+	for maybe_n, i in grid_get_neighbors(grid, square) {
 		n, ok := maybe_n.?
 		if !ok do continue
 
