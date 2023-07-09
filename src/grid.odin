@@ -49,10 +49,10 @@ square_less_options :: proc(i, j: ^Square) -> bool {
 	return len(i.options) < len(j.options)
 }
 
-grid_init :: proc(grid: ^Grid) {
-	reserve(&grid.squares, 25)
-	grid.row_count = 5
-	grid.col_count = 5
+grid_init :: proc(grid: ^Grid, row_count, col_count: int) {
+	reserve(&grid.squares, row_count*col_count)
+	grid.row_count = row_count
+	grid.col_count = col_count
 	size := grid.row_count * grid.col_count
 	for y:=0; y<grid.col_count; y+=1 {
 		for x:=0; x<grid.row_count; x+=1 {

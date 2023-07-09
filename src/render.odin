@@ -195,9 +195,11 @@ renderer_destroy :: proc(r: ^Renderer) {
 	gl.DeleteProgram(r.shaders.sprite)
 }
 
-game_render :: proc(g: ^Game, window: ^sdl2.Window) {
+game_render :: proc(g: ^Game, window: ^sdl2.Window, square_width, square_height: f32) {
 	r := &g.renderer
 	vao := r.buffers.vao
+	w := square_width
+	h := square_height
 
 	// render
 	gl.Viewport(0, 0, i32(g.window_width), i32(g.window_height))
@@ -209,8 +211,6 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 	orig_y: f32 = 0
 	x: f32 = orig_x
 	y: f32 = orig_y
-	w: f32 = 100
-	h: f32 = 100
 	/*
 	space: f32 = 10
 	for tile in Tile {
@@ -291,10 +291,12 @@ game_render :: proc(g: ^Game, window: ^sdl2.Window) {
 					glm.mat4(1),
 					{1, 1, 1},
 				)
-				buf: [2]byte
-				text := strconv.itoa(buf[:], len(square.options))
-				size := text_get_size(&g.writer, text)
-				write_text(&g.writer, text, {x, y} + {hw, hh} - size / 2, {0.5, 0.5, 0.5})
+				if w >= 100 && h >= 60 {
+					buf: [2]byte
+					text := strconv.itoa(buf[:], len(square.options))
+					size := text_get_size(&g.writer, text)
+					write_text(&g.writer, text, {x, y} + {hw, hh} - size / 2, {0.5, 0.5, 0.5})
+				}
 			}
 			x += w
 		}

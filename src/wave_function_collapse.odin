@@ -22,7 +22,7 @@ wfc_step :: proc(game: ^Game) {
 	// sort by fewest possible states
 	// unordered_remove(&squares[4].options, 3)
 	slice.sort_by(squares, square_less_options)
-	print_options(squares)
+	// print_options(squares)
 
 	// pick random out of ones with least options
 	if squares[0].collapsed {
@@ -37,14 +37,14 @@ wfc_step :: proc(game: ^Game) {
 		}
 		rand_mult += 1
 	}
-	fmt.printf("tied with %d: %d\n", options_count, rand_mult)
+	// fmt.printf("tied with %d: %d\n", options_count, rand_mult)
 	f := rand.float32(&game.rand)
 	f *= f32(rand_mult)
 	square_i := int(math.floor(f))
 	square := squares[square_i]
 	square_collapse(square, &game.rand)
 
-	print_options(squares)
+	// print_options(squares)
 
 	my_sides: [4]Side
 	{

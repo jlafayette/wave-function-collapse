@@ -69,7 +69,7 @@ main :: proc() {
 	}
 }
 
-DEBUG_FPS :: false
+DEBUG_FPS :: true
 
 ModePlay :: struct {
 	frames_per_step: int,
@@ -92,8 +92,14 @@ Game :: struct {
 	writer:        Writer,
 	tile_options: [dynamic]TileOption,
 	mode: Mode,
+	tile_size: f32,
 }
 game_init :: proc(g: ^Game, width, height: int) {
+	size: f32 = 10
+	rows := cast(int)math.floor(f32(width) / size)
+	cols := cast(int)math.floor(f32(height) / size)
+	g.tile_size = size
+	
 	g.window_width = width
 	g.window_height = height
 	g.mode = ModePause{}
@@ -102,7 +108,7 @@ game_init :: proc(g: ^Game, width, height: int) {
 
 	assert(renderer_init(&g.renderer, g.projection), "Failed to init renderer")
 
-	grid_init(&g.grid)
+	grid_init(&g.grid, rows, cols)
 	assert(writer_init(&g.writer, TERMINAL_TTF, 16, g.projection), "Failed to init text writer")
 
 	for tile in Tile {
@@ -151,10 +157,12 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 	game_loop: for {
 		start_tick := time.tick_now()
 		dt = f32(ms_elapsed / 1000)
-		// fmt.printf("\nFPS: %f\n", fps)
-		// fmt.printf("ms: %f\n", ms_elapsed)
-		// fmt.printf("dt: %f\n", dt)
-		// fmt.printf("tgt dt: %f\n", target_dt)
+		when DEBUG_FPS {
+			fmt.printf("\nFPS: %f\n", fps)
+			fmt.printf("ms: %f\n", ms_elapsed)
+			fmt.printf("dt: %f\n", dt)
+			fmt.printf("tgt dt: %f\n", target_dt)
+		}
 		game_duration := time.tick_since(game_start_tick)
 		game.sec_elapsed = time.duration_seconds(game_duration)
 
@@ -211,7 +219,7 @@ run :: proc(window: ^sdl2.Window, window_width, window_height, refresh_rate: i32
 			wfc_step(&game)
 		}
 
-		game_render(&game, window)
+		game_render(&game, window, game.tile_size, game.tile_size)
 
 		// timing (avoid looping too fast)
 		duration := time.tick_since(start_tick)
