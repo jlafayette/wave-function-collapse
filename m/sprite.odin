@@ -9,24 +9,52 @@ import "vendor:stb/image"
 import "vendor:sdl2"
 
 
+Tile :: enum {
+	CORNER,
+	CROSS,
+	EMPTY,
+	LINE,
+	T,
+}
+tile_offset :: proc(tile: Tile) -> (f32, f32) {
+	start, end : f32
+	switch tile {
+	case .CORNER:
+		start = 0; end = 0.2
+	case .CROSS:
+		start = 0.2; end = 0.4
+	case .EMPTY:
+		start = 0.4; end = 0.6
+	case .LINE:
+		start = 0.6; end = 0.8
+	case .T:
+		start = 0.8; end = 1
+	}
+	return start, end
+}
 Buffers :: struct {
 	vbo: u32,
 	vao: u32,
+	vertices: [dynamic]Vertex,
 }
 Vertex :: struct {
 	pos: glm.vec2,
 	tex: glm.vec2,
 }
-vertices := []Vertex{
-	{{0, 1}, {0, 1}},
-	{{1, 0}, {1, 0}},
-	{{0, 0}, {0, 0}},
-	{{0, 1}, {0, 1}},
-	{{1, 1}, {1, 1}},
-	{{1, 0}, {1, 0}},
-}
 buffers_init :: proc() -> Buffers {
 	vbo, vao: u32
+	vertices := make([dynamic]Vertex, 0, 12)
+	tmp := []Vertex{
+		{{0, 1}, {0, 1}},
+		{{1, 0}, {1, 0}},
+		{{0, 0}, {0, 0}},
+		{{0, 1}, {0, 1}},
+		{{1, 1}, {1, 1}},
+		{{1, 0}, {1, 0}},
+	}
+	for v in tmp {
+		append(&vertices, v)
+	}
 
 	gl.GenVertexArrays(1, &vao)
 	gl.GenBuffers(1, &vbo)
@@ -34,7 +62,7 @@ buffers_init :: proc() -> Buffers {
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
 		len(vertices) * size_of(vertices[0]),
-		raw_data(vertices),
+		raw_data(vertices[:]),
 		gl.DYNAMIC_DRAW,
 	)
 	gl.BindVertexArray(vao)
@@ -57,11 +85,26 @@ buffers_init :: proc() -> Buffers {
 		offset_of(Vertex, tex),
 	)
 
-	return Buffers{vbo, vao}
+	return Buffers{vbo, vao, vertices}
 }
 buffers_destroy :: proc(buffers: ^Buffers) {
 	gl.DeleteBuffers(1, &buffers.vbo)
 	gl.DeleteVertexArrays(1, &buffers.vao)
+	delete(buffers.vertices)
+}
+buffers_append_tile :: proc(b: ^Buffers, tile: Tile, offset: vec2) {
+	s, e := tile_offset(tile)
+	tmp := []Vertex{
+		{{0, 1}, {s, 1}},
+		{{1, 0}, {e, 0}},
+		{{0, 0}, {s, 0}},
+		{{0, 1}, {s, 1}},
+		{{1, 1}, {e, 1}},
+		{{1, 0}, {e, 0}},
+	}
+	for v in tmp {
+		append(&b.vertices, Vertex{v.pos + offset, v.tex})
+	}
 }
 
 Texture2D :: struct {
@@ -111,10 +154,35 @@ texture :: proc(filename: cstring, program_id: u32, projection: glm.mat4) -> Tex
 	return tex
 }
 
+draw_tiles :: proc(
+	program_id: u32,
+	texture_id: u32,
+	vao: u32,
+	vertex_count: i32,
+	size: glm.vec2,
+) {
+	gl.UseProgram(program_id)
+	model := glm.mat4(1)
+	model = model * glm.mat4Scale({size.x, size.y, 1})
+	gl.UniformMatrix4fv(gl.GetUniformLocation(program_id, "model"), 1, false, &model[0, 0])
+	c : glm.vec3 = {1, 1, 1}
+	gl.Uniform3fv(gl.GetUniformLocation(program_id, "spriteColor"), 1, &c[0])
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, texture_id)
+
+	gl.BindVertexArray(vao); defer gl.BindVertexArray(0)
+
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	gl.DrawArrays(gl.TRIANGLES, 0, vertex_count)
+}
+
 draw_sprite :: proc(
 	program_id: u32,
 	texture_id: u32,
 	vao: u32,
+	vertex_count: i32,
 	pos, size: glm.vec2,
 	rotate: f32,
 	color: glm.vec3,
@@ -139,7 +207,7 @@ draw_sprite :: proc(
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	gl.DrawArrays(gl.TRIANGLES, 0, vertex_count)
 }
 
 Renderer :: struct {
@@ -170,6 +238,7 @@ renderer_destroy :: proc(r: ^Renderer) {
 
 render :: proc(g: ^Game, window: ^sdl2.Window) {
 	r := &g.renderer
+	buffers := &r.buffers
 	vao := r.buffers.vao
 	vbo := r.buffers.vbo
 
@@ -178,39 +247,32 @@ render :: proc(g: ^Game, window: ^sdl2.Window) {
 	gl.ClearColor(0.007843, 0.02353, 0.02745, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	{
-		// vertices := []Vertex{
-		// 	{{0, 1}, {0, 1}},
-		// 	{{1, 0}, {1, 0}},
-		// 	{{0, 0}, {0, 0}},
-		// 	{{0, 1}, {0, 1}},
-		// 	{{1, 1}, {1, 1}},
-		// 	{{1, 0}, {1, 0}},
-		// }
-		for v, i in vertices {
-			if v.tex.x == 0 {
-				vertices[i].tex.x = 0.8
-			}
-			if v.tex.x == 1 {
-				vertices[i].tex.x = 1.0
-			}
-		}
-		gl.BindBuffer(gl.ARRAY_BUFFER, vbo); defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-		gl.BufferData(
-			gl.ARRAY_BUFFER,
-			len(vertices) * size_of(vertices[0]),
-			raw_data(vertices),
-			gl.DYNAMIC_DRAW,
-		)
-	}
-
 	size := cast(f32)r.texture.height
 	scale: f32 = 10
 	// w := f32(r.texture.width) * scale
 	// h := f32(r.texture.height) * scale
 	w := size * scale
 	h := size * scale
-	draw_sprite(r.shader, r.texture.id, vao, {0, 0}, {w, h}, 0, {1, 1, 1})
+
+	{
+		clear(&buffers.vertices)
+		buffers_append_tile(buffers, .CORNER, {0, 0})
+		buffers_append_tile(buffers, .T, {1, 0})
+		buffers_append_tile(buffers, .LINE, {0, 1})
+		buffers_append_tile(buffers, .CROSS, {1, 1})
+
+		gl.BindBuffer(gl.ARRAY_BUFFER, vbo); defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+		gl.BufferData(
+			gl.ARRAY_BUFFER,
+			len(buffers.vertices) * size_of(buffers.vertices[0]),
+			raw_data(buffers.vertices[:]),
+			gl.DYNAMIC_DRAW,
+		)
+	}
+
+	v_count := cast(i32)len(buffers.vertices)
+	draw_tiles(r.shader, r.texture.id, vao, v_count, {w, h})
+	// draw_sprite(r.shader, r.texture.id, vao, v_count, {0, 0}, {w, h}, 0, {1, 1, 1})
 
 	gl_report_error()
 	sdl2.GL_SwapWindow(window)
